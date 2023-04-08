@@ -22,7 +22,6 @@ function App(props) {
                             <label>${cpu.toFixed(0)}%</label>
                         </div>`;
                 })}
-            });  
             `;
     else {
         return html`
@@ -41,8 +40,7 @@ function App(props) {
                         <div class="bar-inner" style="width: ${cpu}%"></div>
                             <label>${cpu.toFixed(0)}%</label>
                         </div>`;
-                })}
-            });  
+                })}  
             `;
     }
 }
