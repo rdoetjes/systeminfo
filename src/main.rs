@@ -81,7 +81,7 @@ async fn main() -> Result<(), rocket::Error> {
     let mut s = detail.clone();
     thread::spawn(move || get_sys_info(&mut s));
 
-   let shared_data = SharedData::new(detail.clone());
+    let shared_data = SharedData::new(detail.clone());
 
     const ROOTV1: &str = "/api/v1";
     let rocket = rocket::build()
