@@ -79,9 +79,7 @@ async fn main() -> Result<(), rocket::Error> {
 
     //thread that gathers all system data and puts it in Arc Mutex called detail
     let mut s = detail.clone();
-    thread::spawn(move || {
-        get_sys_info(&mut s);
-    });
+    thread::spawn(move || get_sys_info(&mut s));
 
    let shared_data = SharedData::new(detail.clone());
 
