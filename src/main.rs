@@ -10,6 +10,7 @@ struct SharedData{
 
 impl SharedData{
     fn new(s:  Arc<std::sync::Mutex<SystemInfo>>) -> SharedData{
+
         SharedData{
             system_info: s,
         }
@@ -81,7 +82,6 @@ async fn main() -> Result<(), rocket::Error> {
     thread::spawn(move || {
         get_sys_info(&mut s);
     });
-
 
    let shared_data = SharedData::new(detail.clone());
 
