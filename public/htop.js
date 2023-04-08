@@ -28,12 +28,12 @@ function App(props) {
         return html`
             <div class="bar">
                 <div class="bar-inner" style="width: ${(props.sysinfo.used_memory / props.sysinfo.tot_memory)*100}%"></div>
-                <label>PHYSICAL RAM: ${props.sysinfo.tot_memory / (1024 * 1024 * 1024)}GB used: ${(props.sysinfo.used_memory / (1024 * 1024 * 1024)).toFixed(2)} GB</label>
+                <label>PHYSICAL RAM: ${props.sysinfo.tot_memory / (1024 * 1024 * 1024).toFixed(2)}GB used: ${(props.sysinfo.used_memory / (1024 * 1024 * 1024)).toFixed(2)} GB</label>
             </div>
             
             <div class="bar">
                 <div class="bar-inner" style="width: ${(props.sysinfo.used_swap / props.sysinfo.tot_swap)*100}%"></div>
-                <label>SWAP: ${props.sysinfo.tot_swap / (1024 * 1024 * 1024)}GB used: ${(props.sysinfo.used_swap / (1024 * 1024 * 1024)).toFixed(2)} GB</label>
+                <label>SWAP: ${props.sysinfo.tot_swap / (1024 * 1024 * 1024).toFixed(2)}GB used: ${(props.sysinfo.used_swap / (1024 * 1024 * 1024)).toFixed(2)} GB</label>
             </div>
 
         ${props.sysinfo.cpu_util.map(cpu => {
