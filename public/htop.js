@@ -8,7 +8,7 @@ function App(props) {
         return html`
             <div class="bar">
                 <div class="bar-inner" style="width: ${(props.sysinfo.used_memory / props.sysinfo.tot_memory)*100}%"></div>
-                <label>PHYSICAL RAM: ${props.sysinfo.tot_memory / (1024 * 1024 * 1024)}GB used: ${(props.sysinfo.used_memory / (1024 * 1024 * 1024)).toFixed(2)}GB</label>
+                <label>PHYSICAL RAM: ${props.sysinfo.tot_memory / (1024 * 1024 * 1024).toFixed(0)}GB used: ${(props.sysinfo.used_memory / (1024 * 1024 * 1024)).toFixed(2)}GB</label>
             </div>
             
             <div class="bar">
