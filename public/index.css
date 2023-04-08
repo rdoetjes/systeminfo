@@ -9,12 +9,23 @@ body {
 }
 
 .memory {
-    font-style: italic;
     color: white;
+    
+    width: 20em;
+    height: 2em;
+    margin: .5em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    position: relative;
+    border: 1px solid;
+    border-radius: 4px;
 }
 
 .bar {
-  background: #264653;
+  background: #0c8c05;
   color: white;
 
   width: 20em;
@@ -26,6 +37,7 @@ body {
   justify-content: center;
 
   position: relative;
+  border: 1px solid;
 }
 
 .bar label {
@@ -37,7 +49,7 @@ body {
 
   height: 100%;
 
-  background: #2A9D8F;
+  background: #e92626;
   position: absolute;
   left: 0;
   top: 0;
