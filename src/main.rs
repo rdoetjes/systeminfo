@@ -46,6 +46,7 @@ async fn sysinfo(state: &State<SharedData>) -> String {
     let details = &state.system_info.lock().unwrap().to_owned();
     result = rocket::serde::json::to_string(&details).expect("{}}").to_string();
     
+    //let go of the lock before it goes out of scope, because the send is relatively slow and would otherwise block writing from the get_sys_info thread
     drop(details);
     result
 }
@@ -66,7 +67,7 @@ fn get_sys_info(info: &mut Arc<std::sync::Mutex<SystemInfo>>){
         for cpu in sys.cpus() {
            details.cpu_util.push(cpu.cpu_usage()); 
         }
-      
+        //let go of the lock before it goes out of scope, because the sleep would otherwise block reading
         drop(details);
         
         thread::sleep(time::Duration::from_millis(1000));
