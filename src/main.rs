@@ -1,6 +1,6 @@
 use std::{thread, time::{self}, sync::{Arc, Mutex}};
 
-use rocket::{get, State, routes, serde::Serialize};
+use rocket::{get, State, routes, serde::Serialize, fs::FileServer}; 
 use ::sysinfo::{System, SystemExt, CpuExt};
 
 #[derive(Default, Debug)]
@@ -72,7 +72,6 @@ fn get_sys_info(info: &mut Arc<std::sync::Mutex<SystemInfo>>){
     }
 }
 
-
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     let detail = Arc::new(Mutex::new(SystemInfo::default()));
@@ -89,10 +88,11 @@ async fn main() -> Result<(), rocket::Error> {
     const ROOTV1: &str = "/api/v1";
     let rocket = rocket::build()
                     .mount(ROOTV1, routes![sysinfo])
+                    .mount("/", FileServer::from( "./public" ))
                     .manage(shared_data)
                     .ignite().await?;
 
-    let rocket = rocket.launch().await?;
+    let _rocket = rocket.launch().await?;
 
     Ok(())
 }

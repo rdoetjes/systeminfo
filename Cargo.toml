@@ -12,6 +12,11 @@ openssl = { version = "0.10", features = ["vendored"] }
 sysinfo = "0.28.4"
 lazy_static = "1.4.0"
 
+[dependencies.rocket_contrib]
+version = "0.4.10"
+default-features = false
+features = ["json"]
+
 [global.tls]
 certs = "./cert/certs.pem"
 key = "./cert/key.pem"
