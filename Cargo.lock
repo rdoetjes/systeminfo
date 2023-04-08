@@ -1269,6 +1269,7 @@ dependencies = [
  "lazy_static",
  "openssl",
  "rocket",
+ "serde",
  "sysinfo",
 ]
 

@@ -1,6 +1,6 @@
 use std::{thread, time::{self}, sync::{Arc, Mutex}};
 
-use rocket::{get, State, routes};
+use rocket::{get, State, routes, serde::Serialize};
 use ::sysinfo::{System, SystemExt, CpuExt};
 
 #[derive(Default, Debug)]
@@ -16,7 +16,7 @@ impl SharedData{
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize)]
 struct SystemInfo{
     tot_memory: u64,
     used_memory: u64,
@@ -38,20 +38,14 @@ impl SystemInfo{
     }
 }
 
-// #[get("/sysinfo")]
-// async fn sysinfo(){
-
-// }
-
 #[get("/sysinfo")]
 async fn sysinfo(state: &State<SharedData>) -> String {
-    let mut result = "".to_string();
+    let result;
 
-    let details = state.system_info.lock().unwrap();
-    for cpu in &details.cpu_util{
-        result+=&format!("cpu usage: {}", cpu).to_string();
-    }
-
+    let details = &state.system_info.lock().unwrap().to_owned();
+    result = rocket::serde::json::to_string(&details).expect("{}}").to_string();
+    
+    drop(details);
     result
 }
 
@@ -71,10 +65,10 @@ fn get_sys_info(info: &mut Arc<std::sync::Mutex<SystemInfo>>){
         for cpu in sys.cpus() {
            details.cpu_util.push(cpu.cpu_usage()); 
         }
-        println!("{:?}", details);
+      
         drop(details);
         
-        thread::sleep(time::Duration::from_millis(500));
+        thread::sleep(time::Duration::from_millis(1000));
     }
 }
 
@@ -92,14 +86,13 @@ async fn main() -> Result<(), rocket::Error> {
 
    let shared_data = SharedData::new(detail.clone());
 
-    const ROOT: &str = "/api/v1";
+    const ROOTV1: &str = "/api/v1";
     let rocket = rocket::build()
-                    .mount(ROOT, routes![sysinfo])
+                    .mount(ROOTV1, routes![sysinfo])
                     .manage(shared_data)
                     .ignite().await?;
 
     let rocket = rocket.launch().await?;
-    println!("Welcome back, Rocket: {:?}", rocket);
 
     Ok(())
 }
