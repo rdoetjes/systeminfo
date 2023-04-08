@@ -38,22 +38,22 @@ impl SystemInfo{
     }
 }
 
-#[get("/sysinfo")]
-async fn sysinfo(){
+// #[get("/sysinfo")]
+// async fn sysinfo(){
 
-}
-
-// #[get("/api/v1/sysinfo")]
-// async fn sysinfo(state: &State<Arc<std::sync::Mutex<SystemInfo>>>) -> String {
-//     let details = state.lock().unwrap();
-//     let mut result = "".to_string();
-
-//     for cpu in &details.cpu_util{
-//         result+=&format!("cpu usage: {}", cpu).to_string();
-//     }
-
-//     result
 // }
+
+#[get("/sysinfo")]
+async fn sysinfo(state: &State<SharedData>) -> String {
+    let mut result = "".to_string();
+
+    let details = state.system_info.lock().unwrap();
+    for cpu in &details.cpu_util{
+        result+=&format!("cpu usage: {}", cpu).to_string();
+    }
+
+    result
+}
 
 fn get_sys_info(info: &mut Arc<std::sync::Mutex<SystemInfo>>){
     let mut sys = System::new_all();
