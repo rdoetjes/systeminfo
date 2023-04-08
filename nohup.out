@@ -3,3 +3,7 @@
 Rocket has launched from https://0.0.0.0:8081
 Warning: tls handshake with 127.0.0.1:53779 failed: received fatal alert: CertificateUnknown
 Warning: Received SIGTERM. Requesting shutdown.
+   >> Detected TLS-enabled liftoff without enabling HSTS.
+   >> Shield has enabled a default HSTS policy.
+Rocket has launched from https://0.0.0.0:8081
+Warning: tls handshake with 127.0.0.1:53849 failed: received fatal alert: CertificateUnknown
