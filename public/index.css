@@ -2,27 +2,13 @@
 
 * {
   font-family: "Roboto", sans-serif;
+  font-size: 0.85em;
 }
 
 body {
   background: #0f0f0f;
 }
 
-.memory {
-    color: white;
-    
-    width: 20em;
-    height: 2em;
-    margin: .5em;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    position: relative;
-    border: 1px solid;
-    border-radius: 4px;
-}
 
 .bar {
   background: #0c8c05;
