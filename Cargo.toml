@@ -1,0 +1,16 @@
+[package]
+name = "systeminfo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = { version = "0.5.0-rc.2", features = ["tls", "json"] }
+openssl = { version = "0.10", features = ["vendored"] }
+sysinfo = "0.28.4"
+lazy_static = "1.4.0"
+
+[global.tls]
+certs = "./cert/certs.pem"
+key = "./cert/key.pem"
