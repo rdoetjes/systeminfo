@@ -5,3 +5,7 @@ workers = 8
 keep_alive = 5
 secret_key = "this_is_just_for_demo"
 limits = { forms = 32768 }
+
+[global.tls]
+certs = "./cert/cert.crt"
+key = "./cert/unencrypted_key.pem"
