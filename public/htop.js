@@ -45,8 +45,6 @@ function App(props) {
     }
 }
 
-let i = 0;
-
 let update = async () => {
     let response = await fetch("/api/v1/sysinfo");
     if (response.status !== 200) {
