@@ -31,7 +31,6 @@ impl SystemInfo{
         let mut sys = System::new_all();
         // First we update all information of our `System` struct.
         sys.refresh_all();
-
         SystemInfo {
             cpu_util: Vec::with_capacity(sys.cpus().len()),
             ..Default::default()
