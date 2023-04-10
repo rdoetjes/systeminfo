@@ -1,4 +1,4 @@
-use std::{thread, time::{self}, sync::{Arc, RwLock}};
+use std::{thread, time, sync::{Arc, RwLock}};
 
 use rocket::{get, State, routes, serde::Serialize, fs::FileServer}; 
 use ::sysinfo::{System, SystemExt, CpuExt};
