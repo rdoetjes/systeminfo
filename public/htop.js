@@ -57,3 +57,4 @@ let update = async () => {
 
 update();
 setInterval(update, 1500);
+function calculateTax(amount, tax){}
