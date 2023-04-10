@@ -9,6 +9,7 @@ edition = "2021"
 rocket = { version = "0.5.0-rc.3", features = ["tls", "json"] }
 serde = { version = "1.0.152", features = ["derive"] }
 openssl = { version = "0.10", features = ["vendored"] }
+time = "0.2.23"
 sysinfo = "0.28.4"
 
 [dependencies.rocket_contrib]
