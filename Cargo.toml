@@ -11,6 +11,7 @@ serde = { version = "1.0.152", features = ["derive"] }
 openssl = { version = "0.10", features = ["vendored"] }
 time = "0.2.23"
 sysinfo = "0.28.4"
+hyper = "0.14.12"
 
 [dependencies.rocket_contrib]
 version = "0.4.10"

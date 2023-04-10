@@ -1845,6 +1845,7 @@ dependencies = [
 name = "systeminfo"
 version = "0.1.0"
 dependencies = [
+ "hyper 0.14.25",
  "openssl",
  "rocket 0.5.0-rc.3",
  "rocket_contrib",
