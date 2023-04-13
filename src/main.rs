@@ -38,7 +38,7 @@ async fn connect_rabbitmq() -> Connection {
     return connection;
 }
 
-async fn channel_rabbitmq(connection: amqprs::connection::Connection)-> Channel{
+async fn channel_rabbitmq(connection: &amqprs::connection::Connection)-> Channel{
     let channel = connection.open_channel(None).await.unwrap();
     channel.register_callback(DefaultChannelCallback).await.unwrap();
     return  channel;
@@ -47,6 +47,9 @@ async fn channel_rabbitmq(connection: amqprs::connection::Connection)-> Channel{
 async fn get_sys_info(){
     let mut sys = System::new_all();
     let mut details = SystemInfo::default();
+   
+    let mut connection = connect_rabbitmq().await;
+    let mut channel = channel_rabbitmq(&connection).await;
 
     loop{
         sys.refresh_cpu();
@@ -62,16 +65,20 @@ async fn get_sys_info(){
             details.cpu_util.push(cpu.cpu_usage()); 
         }
 
-        let connection = connect_rabbitmq().await;
-        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
-        let channel = channel_rabbitmq(connection).await;
-
-        if channel.is_open() {
-            // create arguments for basic_publish
-            let args = BasicPublishArguments::new("systemmonitor", "");
-            channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+        if !connection.is_open(){
+            connection = connect_rabbitmq().await;
         }
-        thread::sleep(time::Duration::from_millis(1000));
+
+        if !channel.is_open() {
+            println!("{}", channel.is_open());
+            channel = channel_rabbitmq(&connection).await;
+        }
+
+        let args = BasicPublishArguments::new("systemmonitor", "");
+        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
+        channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+
+        thread::sleep(time::Duration::from_millis(1)); 
     }
     
 }
