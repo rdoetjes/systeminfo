@@ -26,6 +26,7 @@ impl SystemInfo{
 }
 
 async fn connect_rabbitmq() -> Connection {
+    //this is for demo and teaching purposes, you would fetch this information from a config of course
     let connection = Connection::open(&OpenConnectionArguments::new(
         "localhost",
         5672,
