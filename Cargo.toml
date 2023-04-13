@@ -6,18 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.5.0-rc.3", features = ["tls", "json"] }
-serde = { version = "1.0.152", features = ["derive"] }
 openssl = { version = "0.10", features = ["vendored"] }
 time = "0.2.23"
 sysinfo = "0.28.4"
 hyper = "0.14.12"
+amqprs = "1.2.0"
+tokio = "1.27.0"
+serde = "1.0.160"
+serde_json = "1.0.96"
 
-[dependencies.rocket_contrib]
-version = "0.4.10"
-default-features = false
-features = ["json"]
-
-[global.tls]
-certs = "./cert/certs.pem"
-key = "./cert/key.pem"

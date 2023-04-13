@@ -1,21 +1,8 @@
-use std::{thread, time, sync::{Arc, RwLock}};
-
-use rocket::{get, State, routes, serde::Serialize, fs::FileServer}; 
+use std::{thread, time};
+use amqprs::{connection::{Connection, OpenConnectionArguments}, callbacks::{DefaultConnectionCallback, DefaultChannelCallback}, channel::{Channel, BasicPublishArguments}, BasicProperties};
+use serde::Serialize;
 use ::sysinfo::{System, SystemExt, CpuExt};
-
-#[derive(Default, Debug)]
-struct SharedData{
-    system_info: Arc<std::sync::RwLock<SystemInfo>>,
-}
-
-impl SharedData{
-    fn new(s:  Arc<std::sync::RwLock<SystemInfo>>) -> SharedData{
-
-        SharedData{
-            system_info: s,
-        }
-    }
-}
+use serde_json;
 
 #[derive(Default, Debug, Clone, Serialize)]
 struct SystemInfo{
@@ -38,25 +25,32 @@ impl SystemInfo{
     }
 }
 
-#[get("/sysinfo")]
-async fn sysinfo(state: &State<SharedData>) -> String {
-    let result;
+async fn connect_rabbitmq() -> Connection {
+    let connection = Connection::open(&OpenConnectionArguments::new(
+        "localhost",
+        5672,
+        "guest",
+        "guest",
+    )).await.unwrap();
 
-    let details = &state.system_info.read().unwrap().to_owned();
-    result = rocket::serde::json::to_string(&details).expect("{}}").to_string();
-    
-    //let go of the read lock because the send is relatively slow; not that this would be an issue with Read locks
-    drop(details);
-    result
+    connection.register_callback(DefaultConnectionCallback).await.unwrap();
+    return connection;
 }
 
-fn get_sys_info(info: &mut Arc<std::sync::RwLock<SystemInfo>>){
+async fn channel_rabbitmq(connection: amqprs::connection::Connection)-> Channel{
+    let channel = connection.open_channel(None).await.unwrap();
+    channel.register_callback(DefaultChannelCallback).await.unwrap();
+    return  channel;
+}
+
+async fn get_sys_info(){
     let mut sys = System::new_all();
+    let mut details = SystemInfo::default();
 
     loop{
-        sys.refresh_all();
-        let mut details = info.write().unwrap();
-    
+        sys.refresh_cpu();
+        sys.refresh_memory();
+        
         details.tot_memory = sys.total_memory();
         details.used_memory = sys.used_memory();
         details.tot_swap = sys.total_swap();
@@ -64,34 +58,21 @@ fn get_sys_info(info: &mut Arc<std::sync::RwLock<SystemInfo>>){
 
         details.cpu_util.clear();
         for cpu in sys.cpus() {
-           details.cpu_util.push(cpu.cpu_usage()); 
+            details.cpu_util.push(cpu.cpu_usage()); 
         }
 
-        //let go of thw write lock
-        drop(details);
-        
+        let connection = connect_rabbitmq();
+        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
+        let channel = channel_rabbitmq(connection.await);
+        // create arguments for basic_publish
+        let args = BasicPublishArguments::new("systemmonitor", "");
+        channel.await.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
         thread::sleep(time::Duration::from_millis(1000));
     }
+    
 }
 
-#[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
-    let detail = Arc::new(RwLock::new(SystemInfo::default()));
-
-    //thread that gathers all system data and puts it in Arc Mutex called detail
-    let mut s = detail.clone();
-    thread::spawn(move || get_sys_info(&mut s));
-
-    let shared_data = SharedData::new(detail.clone());
-
-    const ROOTV1: &str = "/api/v1";
-    let rocket = rocket::build()
-                    .mount(ROOTV1, routes![sysinfo])
-                    .mount("/", FileServer::from( "./public" ))
-                    .manage(shared_data)
-                    .ignite().await?;
-
-    let _rocket = rocket.launch().await?;
-
-    Ok(())
+#[tokio::main]
+async fn main() {
+    get_sys_info().await;
 }
