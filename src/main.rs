@@ -31,7 +31,7 @@ async fn connect_rabbitmq() -> Connection {
         "localhost",
         5672,
         "guest",
-        "guest",
+        "herpies",
     )).await.unwrap();
 
     connection.register_callback(DefaultConnectionCallback).await.unwrap();
@@ -62,12 +62,15 @@ async fn get_sys_info(){
             details.cpu_util.push(cpu.cpu_usage()); 
         }
 
-        let connection = connect_rabbitmq();
+        let connection = connect_rabbitmq().await;
         let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
-        let channel = channel_rabbitmq(connection.await);
-        // create arguments for basic_publish
-        let args = BasicPublishArguments::new("systemmonitor", "");
-        channel.await.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+        let channel = channel_rabbitmq(connection).await;
+
+        if channel.is_open() {
+            // create arguments for basic_publish
+            let args = BasicPublishArguments::new("systemmonitor", "");
+            channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+        }
         thread::sleep(time::Duration::from_millis(1000));
     }
     
