@@ -88,11 +88,11 @@ async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
             println!("{}", channel.is_open());
             channel = channel_rabbitmq(&connection).await;
         }
-
-        let args = BasicPublishArguments::new("systemmonitor", "");
-        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
-        channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
-
+        else {
+            let args = BasicPublishArguments::new("systemmonitor", "");
+            let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
+            channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+        }
         thread::sleep(time::Duration::from_millis(1)); 
     }
     
