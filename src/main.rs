@@ -27,14 +27,14 @@ impl SystemInfo{
     }
 }
 
-async fn connect_rabbitmq(host: &str, port: u16, username: &str, password: &str) -> Connection {
+async fn connect_rabbitmq(rabbit: &RabbitConnect) -> Connection {
     //this is for demo and teaching purposes, you would fetch this information from a config of course
-    let mut res = Connection::open(&OpenConnectionArguments::new(host, port, username, password)).await;
+    let mut res = Connection::open(&OpenConnectionArguments::new(&rabbit.host, rabbit.port, &rabbit.username, &rabbit.password)).await;
 
     while res.is_err(){
         println!("trying to connect after error");
         std::thread::sleep(time::Duration::from_millis(2000));
-        res =  Connection::open(&OpenConnectionArguments::new(host, port, username, password)).await;
+        res =  Connection::open(&OpenConnectionArguments::new(&rabbit.host, rabbit.port, &rabbit.username, &rabbit.password)).await;
     }
 
     let connection = res.unwrap();
@@ -48,10 +48,10 @@ async fn channel_rabbitmq(connection: &amqprs::connection::Connection)-> Channel
     return  channel;
 }
 
-async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Channel, host: &str, port: u16, username: &str, password: &str, result: &str){
+async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Channel,rabbit: &RabbitConnect, result: &str){
     if !connection.is_open(){
         println!("Connection not open");
-        *connection = connect_rabbitmq(host, port, username, password).await;
+        *connection = connect_rabbitmq(rabbit).await;
         *channel = channel_rabbitmq(&connection).await;
         println!("{}", connection);
     }
@@ -66,7 +66,7 @@ async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Cha
     }
 }
 
-async fn get_sys_info(connection: &mut amqprs::connection::Connection, channel: &mut Channel, host: &str, port: u16, username: &str, password: &str, sys: &mut System, details: &mut SystemInfo){
+async fn get_sys_info(connection: &mut amqprs::connection::Connection, channel: &mut Channel, rabbit: &RabbitConnect, sys: &mut System, details: &mut SystemInfo){
 
         sys.refresh_cpu();
         sys.refresh_memory();
@@ -82,20 +82,28 @@ async fn get_sys_info(connection: &mut amqprs::connection::Connection, channel: 
         }
 
         let result = serde_json::to_string(&details.to_owned()).expect("{}").to_string();
-        send(connection, channel, host, port, username, password, &result).await;
+        send(connection, channel, rabbit, &result).await;
 
+}
+
+struct RabbitConnect{
+    host: String,
+    port: u16,
+    username: String,
+    password: String,
 }
 
 #[tokio::main]
 async fn main() {
+    let connection_details = RabbitConnect{host: "localhost".to_string(), port: 5672, username: "guest".to_string(), password: "herpies".to_string(),};
     let mut sys = System::new_all();
     let mut details = SystemInfo::default();
    
-    let mut connection = connect_rabbitmq("localhost", 5672, "guest","herpies").await;
+    let mut connection = connect_rabbitmq(&connection_details).await;
     let mut channel = channel_rabbitmq(&connection).await;
 
     loop{
-        get_sys_info(&mut connection, &mut channel, "localhost", 5672, "guest","herpies", &mut sys, &mut details).await;
+        get_sys_info(&mut connection, &mut channel, &connection_details, &mut sys, &mut details).await;
         thread::sleep(time::Duration::from_millis(1000));     
     }
 }
