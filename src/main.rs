@@ -25,17 +25,29 @@ impl SystemInfo{
     }
 }
 
-async fn connect_rabbitmq() -> Connection {
+async fn connect_rabbitmq(host: &str, port: u16, username: &str, password: &str) -> Connection {
     //this is for demo and teaching purposes, you would fetch this information from a config of course
-    let connection = Connection::open(&OpenConnectionArguments::new(
-        "localhost",
-        5672,
-        "guest",
-        "herpies",
-    )).await.unwrap();
+    let mut res = Connection::open(&OpenConnectionArguments::new(
+        host,
+        port,
+        username,
+        password,
+    )).await;
 
+    while res.is_err(){
+        println!("trying to connect after error");
+        std::thread::sleep(time::Duration::from_millis(2000));
+        res = Connection::open(&OpenConnectionArguments::new(
+            host,
+            port,
+            username,
+            password,
+        )).await;
+    }
+
+    let connection = res.unwrap();
     connection.register_callback(DefaultConnectionCallback).await.unwrap();
-    return connection;
+    connection
 }
 
 async fn channel_rabbitmq(connection: &amqprs::connection::Connection)-> Channel{
@@ -44,11 +56,11 @@ async fn channel_rabbitmq(connection: &amqprs::connection::Connection)-> Channel
     return  channel;
 }
 
-async fn get_sys_info(){
+async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
     let mut sys = System::new_all();
     let mut details = SystemInfo::default();
    
-    let mut connection = connect_rabbitmq().await;
+    let mut connection = connect_rabbitmq(host, port, username, password).await;
     let mut channel = channel_rabbitmq(&connection).await;
 
     loop{
@@ -66,7 +78,10 @@ async fn get_sys_info(){
         }
 
         if !connection.is_open(){
-            connection = connect_rabbitmq().await;
+            println!("Connection not open");
+            connection = connect_rabbitmq(host, port, username, password).await;
+            channel = channel_rabbitmq(&connection).await;
+            println!("{}", connection);
         }
 
         if !channel.is_open() {
@@ -85,5 +100,5 @@ async fn get_sys_info(){
 
 #[tokio::main]
 async fn main() {
-    get_sys_info().await;
+    get_sys_info("localhost", 5672, "guest","herpies").await;
 }
