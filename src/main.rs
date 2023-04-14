@@ -95,7 +95,7 @@ async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
             details.cpu_util.push(cpu.cpu_usage()); 
         }
 
-        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
+        let result = serde_json::to_string(&details.to_owned()).expect("{}").to_string();
         send(&mut connection, &mut channel, host, port, username, password, &result).await;
 
         thread::sleep(time::Duration::from_millis(1000)); 
