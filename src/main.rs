@@ -27,22 +27,12 @@ impl SystemInfo{
 
 async fn connect_rabbitmq(host: &str, port: u16, username: &str, password: &str) -> Connection {
     //this is for demo and teaching purposes, you would fetch this information from a config of course
-    let mut res = Connection::open(&OpenConnectionArguments::new(
-        host,
-        port,
-        username,
-        password,
-    )).await;
+    let mut res = Connection::open(&OpenConnectionArguments::new(host, port, username, password)).await;
 
     while res.is_err(){
         println!("trying to connect after error");
         std::thread::sleep(time::Duration::from_millis(2000));
-        res = Connection::open(&OpenConnectionArguments::new(
-            host,
-            port,
-            username,
-            password,
-        )).await;
+        res =  Connection::open(&OpenConnectionArguments::new(host, port, username, password)).await;
     }
 
     let connection = res.unwrap();
