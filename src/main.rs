@@ -56,6 +56,24 @@ async fn channel_rabbitmq(connection: &amqprs::connection::Connection)-> Channel
     return  channel;
 }
 
+async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Channel, host: &str, port: u16, username: &str, password: &str, result: &str){
+    if !connection.is_open(){
+        println!("Connection not open");
+        *connection = connect_rabbitmq(host, port, username, password).await;
+        *channel = channel_rabbitmq(&connection).await;
+        println!("{}", connection);
+    }
+
+    if !channel.is_open() {
+        println!("{}", channel.is_open());
+        *channel = channel_rabbitmq(&connection).await;
+    }
+    else {
+        let args = BasicPublishArguments::new("systemmonitor", "");
+        channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
+    }
+}
+
 async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
     let mut sys = System::new_all();
     let mut details = SystemInfo::default();
@@ -77,22 +95,9 @@ async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
             details.cpu_util.push(cpu.cpu_usage()); 
         }
 
-        if !connection.is_open(){
-            println!("Connection not open");
-            connection = connect_rabbitmq(host, port, username, password).await;
-            channel = channel_rabbitmq(&connection).await;
-            println!("{}", connection);
-        }
+        let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
+        send(&mut connection, &mut channel, host, port, username, password, &result).await;
 
-        if !channel.is_open() {
-            println!("{}", channel.is_open());
-            channel = channel_rabbitmq(&connection).await;
-        }
-        else {
-            let args = BasicPublishArguments::new("systemmonitor", "");
-            let result = serde_json::to_string(&details.to_owned()).expect("{}}").to_string();
-            channel.basic_publish(BasicProperties::default(), result.into(), args).await.unwrap();
-        }
         thread::sleep(time::Duration::from_millis(1000)); 
     }
     
