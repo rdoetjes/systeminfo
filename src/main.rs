@@ -16,8 +16,10 @@ struct SystemInfo{
 impl SystemInfo{
     fn default() -> SystemInfo{
         let mut sys = System::new_all();
-        // First we update all information of our `System` struct.
-        sys.refresh_all();
+        // First we update all information of our `System` struct.   
+        sys.refresh_cpu();
+        sys.refresh_memory();
+
         SystemInfo {
             cpu_util: Vec::with_capacity(sys.cpus().len()),
             ..Default::default()
@@ -64,14 +66,8 @@ async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Cha
     }
 }
 
-async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
-    let mut sys = System::new_all();
-    let mut details = SystemInfo::default();
-   
-    let mut connection = connect_rabbitmq(host, port, username, password).await;
-    let mut channel = channel_rabbitmq(&connection).await;
+async fn get_sys_info(connection: &mut amqprs::connection::Connection, channel: &mut Channel, host: &str, port: u16, username: &str, password: &str, sys: &mut System, details: &mut SystemInfo){
 
-    loop{
         sys.refresh_cpu();
         sys.refresh_memory();
         
@@ -86,14 +82,20 @@ async fn get_sys_info(host: &str, port: u16, username: &str, password: &str){
         }
 
         let result = serde_json::to_string(&details.to_owned()).expect("{}").to_string();
-        send(&mut connection, &mut channel, host, port, username, password, &result).await;
+        send(connection, channel, host, port, username, password, &result).await;
 
-        thread::sleep(time::Duration::from_millis(1000)); 
-    }
-    
 }
 
 #[tokio::main]
 async fn main() {
-    get_sys_info("localhost", 5672, "guest","herpies").await;
+    let mut sys = System::new_all();
+    let mut details = SystemInfo::default();
+   
+    let mut connection = connect_rabbitmq("localhost", 5672, "guest","herpies").await;
+    let mut channel = channel_rabbitmq(&connection).await;
+
+    loop{
+        get_sys_info(&mut connection, &mut channel, "localhost", 5672, "guest","herpies", &mut sys, &mut details).await;
+        thread::sleep(time::Duration::from_millis(1000));     
+    }
 }
