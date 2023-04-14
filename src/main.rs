@@ -57,7 +57,7 @@ async fn send(connection: &mut amqprs::connection::Connection, channel: &mut Cha
     }
 
     if !channel.is_open() {
-        println!("{}", channel.is_open());
+        println!("channel is not open, does exchange systemmonitor exist on rabbitMQ?");
         *channel = channel_rabbitmq(&connection).await;
     }
     else {
